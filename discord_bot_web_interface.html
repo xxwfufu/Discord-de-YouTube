@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Bot Discord - Créateur de Posts/Salons YouTube</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #5865f2;
+        }
+
+        .form-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #5865f2;
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .mode-option {
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-option:hover {
+            border-color: #5865f2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88, 101, 242, 0.2);
+        }
+
+        .mode-option.selected {
+            border-color: #5865f2;
+            background: #f0f2ff;
+        }
+
+        .mode-option input[type="radio"] {
+            display: none;
+        }
+
+        .mode-option .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mode-option .title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .mode-option .description {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .forum-selection {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f4fd;
+            border-radius: 10px;
+            border: 2px solid #3498db;
+        }
+
+        .forum-selection.show {
+            display: block;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .status-disconnected {
+            background: #fee;
+            color: #c53030;
+            border: 2px solid #feb2b2;
+        }
+
+        .status-connected {
+            background: #f0fff4;
+            color: #22543d;
+            border: 2px solid #9ae6b4;
+        }
+
+        .status-connecting {
+            background: #fffbf0;
+            color: #744210;
+            border: 2px solid #f6e05e;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #5865f2, #7289da);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .logs-section {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .logs-section h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-success { color: #2ecc71; }
+        .log-error { color: #e74c3c; }
+        .log-warning { color: #f39c12; }
+        .log-info { color: #3498db; }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e1e8ed;
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5865f2, #7289da);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .help-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .help-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .help-section ul {
+            color: #34495e;
+            padding-left: 20px;
+        }
+
+        .help-section li {
+            margin-bottom: 8px;
+        }
+
+                    @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Bot Discord</h1>
+            <p>Créateur de Posts/Salons YouTube</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Section Connexion Bot -->
+            <div class="form-section">
+                <h2>🔑 Connexion du Bot</h2>
+                
+                <div class="status-indicator status-disconnected" id="status">
+                    <span>❌</span>
+                    <span id="status-text">Bot déconnecté</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="token">Token Discord Bot:</label>
+                    <input type="password" id="token" placeholder="Collez votre token Discord ici...">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="connect-btn" onclick="connectBot()">
+                        🔗 Connecter le Bot
+                    </button>
+                    <button class="btn btn-danger" id="disconnect-btn" onclick="disconnectBot()" disabled>
+                        🔌 Déconnecter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Section Configuration -->
+            <div class="form-section">
+                <h2>📋 Configuration</h2>
+
+                <div class="form-group">
+                    <label for="playlist-url">🔗 URL Playlist YouTube:</label>
+                    <input type="url" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=...">
+                </div>
+
+                <div class="form-group">
+                    <label for="guild-id">🏠 ID du Serveur Discord:</label>
+                    <input type="text" id="guild-id" placeholder="123456789012345678">
+                </div>
+
+                <div class="form-group">
+                    <label for="category-name">📁 Nom de la Catégorie/Forum:</label>
+                    <input type="text" id="category-name" value="Films YouTube" placeholder="Films YouTube">
+                </div>
+
+                <div class="form-group">
+                    <label>⚙️ Mode de Création:</label>
+                    <div class="mode-selection">
+                        <div class="mode-option" onclick="selectMode('webhook')">
+                            <input type="radio" name="mode" value="webhook" checked>
+                            <span class="icon">📝</span>
+                            <div class="title">Webhooks</div>
+                            <div class="description">Un salon, plusieurs messages</div>
+                        </div>
+                        
+                        <div class="mode-option" onclick="selectMode('channels')">
+                            <input type="radio" name="mode" value="channels">
+                            <span class="icon">🏠</span>
+                            <div class="title">Salons Multiples</div>
+                            <div class="description">Un salon par vidéo (limite 50)</div>
+                        </div>
+                        
+                        <div class="mode-option" onclick="selectMode('forum')">
+                            <input type="radio" name="mode" value="forum">
+                            <span class="icon">📋</span>
+                            <div class="title">Posts Forum</div>
+                            <div class="description">Posts dans un forum existant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sélection Forum (masqué par défaut) -->
+                <div class="forum-selection" id="forum-selection">
+                    <div class="form-group">
+                        <label for="forum-select">📋 Sélectionner le Forum:</label>
+                        <select id="forum-select">
+                            <option value="">Choisissez un forum...</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-info" onclick="refreshForums()">🔄 Actualiser les Forums</button>
+                </div>
+            </div>
+
+            <!-- Section Actions -->
+            <div class="form-section">
+                <h2>🎬 Actions</h2>
+
+                <div class="button-group">
+                    <button class="btn btn-success" id="create-btn" onclick="createContent()" disabled>
+                        🎬 Créer le Contenu
+                    </button>
+                    <button class="btn btn-info" id="preview-btn" onclick="previewPlaylist()" disabled>
+                        👀 Prévisualiser
+                    </button>
+                    <button class="btn btn-warning" onclick="showHelp()">
+                        ❓ Aide
+                    </button>
+                </div>
+
+                <div class="progress-bar" id="progress-bar" style="display: none;">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Section Logs -->
+            <div class="form-section">
+                <div class="logs-section">
+                    <h3>📜 Logs en Temps Réel</h3>
+                    <div id="logs">
+                        <div class="log-entry log-info">🚀 Interface prête ! Connectez votre bot pour commencer.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Aide -->
+            <div class="help-section">
+                <h3>💡 Guide Rapide</h3>
+                <ul>
+                    <li><strong>Étape 1:</strong> Créez un bot sur <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+                    <li><strong>Étape 2:</strong> Copiez le token et collez-le ci-dessus</li>
+                    <li><strong>Étape 3:</strong> Invitez le bot sur votre serveur avec les bonnes permissions</li>
+                    <li><strong>Étape 4:</strong> Récupérez l'ID de votre serveur (mode développeur activé)</li>
+                    <li><strong>Étape 5:</strong> Configurez et lancez la création !</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'webhook';
+        let isConnected = false;
+        let botData = null;
+
+        // Sélection du mode
+        function selectMode(mode) {
+            currentMode = mode;
+            
+            // Mise à jour visuelle
+            document.querySelectorAll('.mode-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            event.target.closest('.mode-option').classList.add('selected');
+            
+            // Afficher/masquer la sélection de forum
+            const forumSelection = document.getElementById('forum-selection');
+            if (mode === 'forum') {
+                forumSelection.classList.add('show');
+                refreshForums();
+            } else {
+                forumSelection.classList.remove('show');
+            }
+            
+            addLog(`⚙️ Mode sélectionné: ${getModeLabel(mode)}`, 'info');
+        }
+
+        function getModeLabel(mode) {
+            const labels = {
+                'webhook': 'Webhooks',
+                'channels': 'Salons Multiples',
+                'forum': 'Posts Forum'
+            };
+            return labels[mode] || mode;
+        }
+
+        // Gestion des logs
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Simulation de connexion bot
+        function connectBot() {
+            const token = document.getElementById('token').value.trim();
+            
+            if (!token) {
+                addLog('❌ Erreur: Token manquant', 'error');
+                alert('Veuillez entrer le token du bot Discord');
+                return;
+            }
+
+            // Simulation de connexion
+            updateStatus('connecting', '🔄 Connexion en cours...');
+            document.getElementById('connect-btn').disabled = true;
+            
+            addLog('🔄 Tentative de connexion au bot Discord...', 'info');
+            
+            // Simulation avec timeout
+            setTimeout(() => {
+                // Simuler une connexion réussie
+                isConnected = true;
+                updateStatus('connected', '✅ Bot connecté');
+                document.getElementById('connect-btn').disabled = true;
+                document.getElementById('disconnect-btn').disabled = false;
+                document.getElementById('create-btn').disabled = false;
+                document.getElementById('preview-btn').disabled = false;
+                
+                addLog('✅ Bot connecté avec succès !', 'success');
+                addLog('📋 Serveur détecté: Mon Serveur Discord (ID: 123456789)', 'info');
+                
+                // Simuler la récupération des forums
+                if (currentMode === 'forum') {
+                    refreshForums();
+                }
+            }, 2000);
+        }
+
+        function disconnectBot() {
+            isConnected = false;
+            updateStatus('disconnected', '❌ Bot déconnecté');
+            document.getElementById('connect-btn').disabled = false;
+            document.getElementById('disconnect-btn').disabled = true;
+            document.getElementById('create-btn').disabled = true;
+            document.getElementById('preview-btn').disabled = true;
+            
+            addLog('🔌 Bot déconnecté', 'warning');
+        }
+
+        function updateStatus(status, text) {
+            const statusElement = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            
+            statusElement.className = 'status-indicator';
+            statusText.textContent = text;
+            
+            switch (status) {
+                case 'connected':
+                    statusElement.classList.add('status-connected');
+                    break;
+                case 'connecting':
+                    statusElement.classList.add('status-connecting');
+                    break;
+                default:
+                    statusElement.classList.add('status-disconnected');
+            }
+        }
+
+        // Actualiser les forums
+        function refreshForums() {
+            if (!isConnected) {
+                addLog('⚠️ Bot non connecté pour récupérer les forums', 'warning');
+                return;
+            }
+
+            const guildId = document.getElementById('guild-id').value.trim();
+            if (!guildId) {
+                addLog('⚠️ ID du serveur manquant', 'warning');
+                return;
+            }
+
+            addLog('🔄 Récupération des forums...', 'info');
+            
+            // Simulation de récupération des forums
+            setTimeout(() => {
+                const forumSelect = document.getElementById('forum-select');
+                forumSelect.innerHTML = `
+                    <option value="">Choisissez un forum...</option>
+                    <option value="forum1">🎬 Films et Séries (ID: 987654321)</option>
+                    <option value="forum2">📺 Discussions Générales (ID: 987654322)</option>
+                    <option value="forum3">🎭 Critiques de Films (ID: 987654323)</option>
+                `;
+                
+                addLog('📋 3 forums trouvés sur le serveur', 'success');
+            }, 1000);
+        }
+
+        // Prévisualiser la playlist
+        function previewPlaylist() {
+            const playlistUrl = document.getElementById('playlist-url').value.trim();
+            
+            if (!playlistUrl) {
+                addLog('❌ URL de playlist manquante', 'error');
+                alert('Veuillez entrer l\'URL de la playlist YouTube');
+                return;
+            }
+
+            addLog('🔄 Récupération de la playlist...', 'info');
+            
+            // Simulation de récupération
+            setTimeout(() => {
+                addLog('📋 Playlist: Films Gratuits et Légaux', 'success');
+                addLog('🎬 15 vidéos trouvées:', 'info');
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                
+                const sampleVideos = [
+                    'Big Buck Bunny',
+                    'Sintel',
+                    'Tears of Steel',
+                    'Cosmos Laundromat',
+                    'Agent 327: Operation Barbershop'
+                ];
+                
+                sampleVideos.forEach((title, index) => {
+                    const mode = currentMode;
+                    addLog(`${index + 1}. ${title}`, 'info');
+                    
+                    if (mode === 'forum') {
+                        addLog(`   → Post dans le forum`, 'info');
+                    } else if (mode === 'channels') {
+                        addLog(`   → Salon: #${title.toLowerCase().replace(/\s+/g, '-')}`, 'info');
+                    } else {
+                        addLog(`   → Message webhook`, 'info');
+                    }
+                });
+                
+                addLog('... et 10 autres vidéos', 'info');
+                addLog(`⚙️ Mode sélectionné: ${getModeLabel(currentMode)}`, 'info');
+            }, 1500);
+        }
+
+        // Créer le contenu
+        function createContent() {
+            const playlistUrl = document.getElementById('playlist-url').value.trim();
+            const guildId = document.getElementById('guild-id').value.trim();
+            const categoryName = document.getElementById('category-name').value.trim() || 'Films YouTube';
+            
+            if (!playlistUrl) {
+                addLog('❌ URL de playlist manquante', 'error');
+                alert('Veuillez entrer l\'URL de la playlist YouTube');
+                return;
+            }
+            
+            if (!guildId) {
+                addLog('❌ ID du serveur manquant', 'error');
+                alert('Veuillez entrer l\'ID du serveur Discord');
+                return;
+            }
+            
+            if (currentMode === 'forum') {
+                const forumSelect = document.getElementById('forum-select').value;
+                if (!forumSelect) {
+                    addLog('❌ Forum non s
+
+            
